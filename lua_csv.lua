@@ -123,8 +123,45 @@ function union_csv(name,count)
 	write_csv(all_data,name.."_result.csv")
 end
 
-local funs = {union_csv=union_csv}
-
-if "union_csv" == fun then
-	union_csv(file_name,count)
+function login_data(name,count)
+	local all_data = {}
+	local player   = {}
+	for i=1,count do
+		local data = read_csv(name..i..".csv")
+		assert(data)
+		for _,v in pairs(data) do
+			local t = split(v[9]," ")
+			assert(#t==2)
+			player[t[1]] = player[t[1]] or {}
+			player[t[1]][v[6]] = player[t[1]][v[6]] or {}
+			if not player[t[1]][v[6]][v[2]] then
+				player[t[1]][v[6]][v[2]] = true
+				all_data[t[1]] = all_data[t[1]] or {}
+				all_data[t[1]][v[6]] = all_data[t[1]][v[6]] or 0
+				all_data[t[1]][v[6]] = all_data[t[1]][v[6]] + 1
+			end
+		end
+	end
+	local function file_sort(l,r)
+		if l[1] == r[1] then
+			return l[1] < r[2]
+		else
+			return l[1] < r[1]
+		end
+	end
+	local result_data = {}
+	for k,v in pairs(all_data) do
+		for k1,v1 in pairs(v) do
+			local curline = {}
+			table.insert(curline,k)
+			table.insert(curline,k1)
+			table.insert(curline,v1)
+			table.insert(result_data,curline)
+		end
+	end
+	table.sort(result_data,file_sort)
+	write_csv(result_data,name.."_result.csv")
 end
+
+local funs = {union_csv=union_csv,login_data=login_data}
+funs[fun](file_name,count)
